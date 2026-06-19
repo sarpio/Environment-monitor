@@ -1,0 +1,11 @@
+{
+    "typeCheckingMode": "off",
+    "pythonVersion": "3.11",
+    "include": ["."],
+    "stubPath": "./typings",
+    "extraPaths": [
+        "./typings",
+        "."
+    ]
+}
+
