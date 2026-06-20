@@ -8,13 +8,13 @@ except ImportError:
     import json
 
 
-with open("index.html", "r") as f:
+with open("HTML/index.html", "r") as f:
     HTML_TEMPLATE = f.read()
 
-with open("style.css", "r") as f:
+with open("HTML/css/style.css", "r") as f:
     STYLE_CSS = f.read()
 
-with open("script.js", "r") as f:
+with open("HTML/js/script.js", "r") as f:
     SCRIPT_JS_TEMPLATE = f.read()
 
 MAX_HISTORY_RECORDS = 24
@@ -239,7 +239,7 @@ def start_server(read_values, wlan, reconnect_wifi, wdt, start_time=None, restar
             except:
                 request = ""
 
-            if "GET /style.css" in request:
+            if "GET /css/style.css" in request or "GET /style.css" in request:
                 response = (
                     "HTTP/1.1 200 OK\r\n"
                     "Content-Type: text/css\r\n"
@@ -248,7 +248,7 @@ def start_server(read_values, wlan, reconnect_wifi, wdt, start_time=None, restar
                     "\r\n"
                     + STYLE_CSS
                 )
-            elif "GET /script.js" in request:
+            elif "GET /js/script.js" in request or "GET /script.js" in request:
                 temperature, humidity, pressure = read_values()
 
                 response = (
