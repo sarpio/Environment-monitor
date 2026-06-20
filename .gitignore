@@ -9,6 +9,8 @@ data/measurements_history.json
 # Local credentials and machine-specific settings
 credentials.txt
 .vscode/
+typings/
+pyrightconfig.json
 
 # Backup or scratch copies
 _*
