@@ -1,6 +1,7 @@
 import socket
 import time
 import machine
+import os
 
 try:
     import ujson as json
@@ -19,9 +20,17 @@ with open("HTML/js/script.js", "r") as f:
 
 MAX_HISTORY_RECORDS = 24
 HISTORY_INTERVAL = 60 * 60
-HISTORY_FILE = "measurements_history.json"
+DATA_DIR = "data"
+HISTORY_FILE = DATA_DIR + "/measurements_history.json"
 measurements_history = []
 last_history_slot = None
+
+
+def ensure_data_dir():
+    try:
+        os.mkdir(DATA_DIR)
+    except OSError:
+        pass
 
 
 def fmt(value):
@@ -77,6 +86,8 @@ def is_full_hour(now):
 def load_history():
     global measurements_history, last_history_slot
 
+    ensure_data_dir()
+
     try:
         with open(HISTORY_FILE, "r") as f:
             loaded_history = json.load(f)
@@ -95,6 +106,8 @@ def load_history():
 
 
 def save_history():
+    ensure_data_dir()
+
     try:
         with open(HISTORY_FILE, "w") as f:
             json.dump(measurements_history, f)

@@ -4,7 +4,7 @@ __pycache__/
 *.pyo
 
 # Local runtime data
-measurements_history.json
+data/measurements_history.json
 
 # Local credentials and machine-specific settings
 credentials.txt
