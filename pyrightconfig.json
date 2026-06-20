@@ -2,10 +2,11 @@
     "typeCheckingMode": "off",
     "pythonVersion": "3.11",
     "include": ["."],
+    "reportMissingImports": "none",
+    "reportMissingModuleSource": "none",
     "stubPath": "./typings",
     "extraPaths": [
         "./typings",
         "."
     ]
 }
-

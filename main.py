@@ -1,5 +1,4 @@
-from machine import Pin, I2C, WDT, ADC
-import machine
+from machine import Pin, I2C, WDT, ADC, reset
 import network
 import time
 import ntptime
@@ -175,4 +174,4 @@ if wlan.isconnected():
 else:
     print("Brak WiFi, restart...")
     time.sleep(5)
-    machine.reset()
+    reset()
