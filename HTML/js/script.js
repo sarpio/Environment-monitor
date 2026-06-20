@@ -243,7 +243,11 @@ Highcharts.chart('containerPressure', {
             }
         },
         labels: {
-            enabled: false,
+            enabled: true,
+            reserveSpace: false,
+            align: 'left',
+            x: 8,
+            y: 4,
             style: {
                 fontSize: '12px',
                 color: '#f5f5f5'
