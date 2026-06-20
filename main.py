@@ -1,4 +1,4 @@
-from machine import Pin, I2C, WDT
+from machine import Pin, I2C, WDT, ADC
 import machine
 import network
 import time
@@ -16,9 +16,14 @@ wdt = WDT(timeout=60000)
 
 PRESSURE_MIN_HPA = 850
 PRESSURE_MAX_HPA = 1100
-PRESSURE_REDUCTION_HPA = 10
+PRESSURE_REDUCTION_HPA = 0
 PRESSURE_FALLBACK_HPA = 1013.25
 PRESSURE_READ_ATTEMPTS = 3
+
+BATTERY_ADC_PIN = 1
+BATTERY_VOLTAGE_DIVIDER = 2.0
+BATTERY_EMPTY_VOLTAGE = 3.3
+BATTERY_FULL_VOLTAGE = 4.2
 
 NTP_SERVERS = (
     "pool.ntp.org",
@@ -38,6 +43,8 @@ i2c = I2C(
 sht = SHT41(i2c)
 lps = LPS22HH(i2c)
 lps.init()
+bat_adc = ADC(Pin(BATTERY_ADC_PIN))
+bat_adc.atten(ADC.ATTN_11DB)
 last_valid_pressure = None
 
 
@@ -47,6 +54,22 @@ def is_realistic_pressure(pressure):
 
 def reduce_pressure(pressure):
     return pressure + PRESSURE_REDUCTION_HPA
+
+
+def read_battery_percent():
+    raw = bat_adc.read_u16()
+    voltage = raw * 3.3 / 65535 * BATTERY_VOLTAGE_DIVIDER
+    percent = (voltage - BATTERY_EMPTY_VOLTAGE) * 100 / (
+        BATTERY_FULL_VOLTAGE - BATTERY_EMPTY_VOLTAGE
+    )
+
+    if percent < 0:
+        return 0
+
+    if percent > 100:
+        return 100
+
+    return round(percent)
 
 
 def connect_wifi():
@@ -113,7 +136,7 @@ def read_values():
 
     avg_temp = (temp_sht + temp_lps) / 2
 
-    return avg_temp, humidity, reduce_pressure(pressure)
+    return avg_temp, humidity, reduce_pressure(pressure), read_battery_percent()
 
 
 def sync_time(wdt):

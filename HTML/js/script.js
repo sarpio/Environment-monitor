@@ -58,7 +58,28 @@ function fitLatestValues(container) {
     }
 }
 
+function renderBatteryLevel() {
+    var container = document.getElementById('batteryLevel');
+    var latest = weatherData.current || {};
+    var percent = latest.batteryPercent;
+
+    if (!container || percent === undefined || percent === null) {
+        return;
+    }
+
+    var filledBars = Math.ceil(percent / 20);
+    var bars = '';
+
+    for (var i = 1; i <= 5; i += 1) {
+        bars += '<span class="battery-bar' + (i <= filledBars ? ' is-filled' : '') + '"></span>';
+    }
+
+    container.title = 'Bateria: ' + percent.toFixed(0) + '%';
+    container.innerHTML = bars;
+}
+
 renderLatestValues();
+renderBatteryLevel();
 
 Highcharts.chart('container', {
 

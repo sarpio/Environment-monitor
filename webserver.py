@@ -142,7 +142,7 @@ def update_history(read_values):
     if last_history_slot == current_slot:
         return
 
-    temperature, humidity, pressure = read_values()
+    temperature, humidity, pressure, battery_percent = read_values()
     add_history_record(temperature, humidity, pressure, now)
     last_history_slot = current_slot
 
@@ -156,7 +156,12 @@ def build_measurement_js(record):
     )
 
 
-def build_weather_data_js(current_temperature, current_humidity, current_pressure):
+def build_weather_data_js(
+    current_temperature,
+    current_humidity,
+    current_pressure,
+    current_battery_percent
+):
     history_js = ",\n        ".join(
         build_measurement_js(record) for record in measurements_history
     )
@@ -166,7 +171,8 @@ def build_weather_data_js(current_temperature, current_humidity, current_pressur
         "    current: {\n"
         "        temperature: " + fmt_js_number(current_temperature, 2) + ",\n"
         "        humidity: " + fmt_js_number(current_humidity, 2) + ",\n"
-        "        pressure: " + fmt_js_number(current_pressure, 0) + "\n"
+        "        pressure: " + fmt_js_number(current_pressure, 0) + ",\n"
+        "        batteryPercent: " + fmt_js_number(current_battery_percent, 0) + "\n"
         "    },\n"
         "    measurements: [\n"
         "        " + history_js + "\n"
@@ -175,10 +181,20 @@ def build_weather_data_js(current_temperature, current_humidity, current_pressur
     )
 
 
-def build_script(current_temperature, current_humidity, current_pressure):
+def build_script(
+    current_temperature,
+    current_humidity,
+    current_pressure,
+    current_battery_percent
+):
     return SCRIPT_JS_TEMPLATE.replace(
         "{{WEATHER_DATA}}",
-        build_weather_data_js(current_temperature, current_humidity, current_pressure)
+        build_weather_data_js(
+            current_temperature,
+            current_humidity,
+            current_pressure,
+            current_battery_percent
+        )
     )
 
 
@@ -262,7 +278,7 @@ def start_server(read_values, wlan, reconnect_wifi, wdt, start_time=None, restar
                     + STYLE_CSS
                 )
             elif "GET /js/script.js" in request or "GET /script.js" in request:
-                temperature, humidity, pressure = read_values()
+                temperature, humidity, pressure, battery_percent = read_values()
 
                 response = (
                     "HTTP/1.1 200 OK\r\n"
@@ -270,7 +286,7 @@ def start_server(read_values, wlan, reconnect_wifi, wdt, start_time=None, restar
                     "Cache-Control: no-cache\r\n"
                     "Connection: close\r\n"
                     "\r\n"
-                    + build_script(temperature, humidity, pressure)
+                    + build_script(temperature, humidity, pressure, battery_percent)
                 )
             else:
                 response = (
