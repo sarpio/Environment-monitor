@@ -1,0 +1,17 @@
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Local runtime data
+measurements_history.json
+
+# Local credentials and machine-specific settings
+credentials.txt
+.vscode/
+
+# Backup or scratch copies
+_*
+*.bak
+*.tmp
+*~
