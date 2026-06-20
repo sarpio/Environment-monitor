@@ -14,6 +14,12 @@ PASSWORD = "9x6gEw#81S95"
 RESTART_AFTER = None  # historia 24h jest trzymana w RAM, wiec nie resetujemy co godzine
 wdt = WDT(timeout=60000)
 
+PRESSURE_MIN_HPA = 850
+PRESSURE_MAX_HPA = 1100
+PRESSURE_REDUCTION_HPA = 10
+PRESSURE_FALLBACK_HPA = 1013.25
+PRESSURE_READ_ATTEMPTS = 3
+
 NTP_SERVERS = (
     "pool.ntp.org",
     "0.pool.ntp.org",
@@ -32,6 +38,15 @@ i2c = I2C(
 sht = SHT41(i2c)
 lps = LPS22HH(i2c)
 lps.init()
+last_valid_pressure = None
+
+
+def is_realistic_pressure(pressure):
+    return PRESSURE_MIN_HPA <= pressure <= PRESSURE_MAX_HPA
+
+
+def reduce_pressure(pressure):
+    return pressure + PRESSURE_REDUCTION_HPA
 
 
 def connect_wifi():
@@ -70,12 +85,35 @@ def connect_wifi():
 
 
 def read_values():
+    global last_valid_pressure
+
     temp_sht, humidity = sht.read()
-    pressure, temp_lps = lps.read()
+    temp_lps = temp_sht
+    pressure = None
+
+    for attempt in range(PRESSURE_READ_ATTEMPTS):
+        read_pressure, read_temp_lps = lps.read()
+        temp_lps = read_temp_lps
+
+        if is_realistic_pressure(read_pressure):
+            pressure = read_pressure
+            last_valid_pressure = read_pressure
+            break
+
+        print("Nierealistyczne cisnienie:", read_pressure, "hPa, proba", attempt + 1)
+        time.sleep_ms(50)
+
+    if pressure is None:
+        if last_valid_pressure is not None:
+            pressure = last_valid_pressure
+        else:
+            pressure = PRESSURE_FALLBACK_HPA
+
+        print("Uzywam zastepczego cisnienia:", pressure, "hPa")
 
     avg_temp = (temp_sht + temp_lps) / 2
 
-    return avg_temp, humidity, pressure
+    return avg_temp, humidity, reduce_pressure(pressure)
 
 
 def sync_time(wdt):

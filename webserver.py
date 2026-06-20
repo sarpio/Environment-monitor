@@ -60,20 +60,9 @@ def warsaw_offset(now):
     return 60 * 60
 
 
-def warsaw_timezone_name(now):
-    if is_warsaw_dst(time.localtime(now)):
-        return "CEST"
-
-    return "CET"
-
-
 def fmt_measurement_hour(now):
     current_time = time.localtime(now + warsaw_offset(now))
-    return "{:02d}:{:02d} {}".format(
-        current_time[3],
-        current_time[4],
-        warsaw_timezone_name(now)
-    )
+    return str(current_time[3])
 
 
 def measurement_slot(now):

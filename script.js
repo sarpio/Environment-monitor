@@ -12,6 +12,18 @@ function formatTooltipHour(point) {
     return '<div style="font-weight:bold;margin-bottom:6px;">Godz.: ' + point.hour + '</div>';
 }
 
+function formatAxisHour(hour) {
+    return String(parseInt(String(hour).split(' ')[0].split(':')[0], 10));
+}
+
+function normalizePressure(pressure) {
+    if (pressure < 850 || pressure > 1100) {
+        return null;
+    }
+
+    return pressure;
+}
+
 function renderLatestValues() {
     var container = document.getElementById('latestValues');
     var latest = weatherData.current || weatherData.measurements[weatherData.measurements.length - 1];
@@ -22,10 +34,13 @@ function renderLatestValues() {
 
     var temperatureClass = latest.temperature >= 0 ? 'value-temperature-positive' : 'value-temperature-negative';
 
+    var pressure = normalizePressure(latest.pressure);
+    var pressureText = pressure === null ? '--' : pressure.toFixed(0);
+
     container.innerHTML =
         '<span class="latest-item ' + temperatureClass + '">' + latest.temperature.toFixed(1) + ' °C</span>' +
         '<span class="latest-item value-humidity">' + latest.humidity.toFixed(0) + ' %</span>' +
-        '<span class="latest-item value-pressure">' + latest.pressure.toFixed(0) + ' hPa</span>';
+        '<span class="latest-item value-pressure">' + pressureText + ' hPa</span>';
 
     fitLatestValues(container);
 }
@@ -64,7 +79,7 @@ Highcharts.chart('container', {
 
     xAxis: {
         categories: weatherData.measurements.map(function (point) {
-            return point.hour;
+            return formatAxisHour(point.hour);
         }),
         tickInterval: 4,
         tickColor: '#666',
@@ -205,7 +220,7 @@ Highcharts.chart('containerPressure', {
 
     xAxis: {
         categories: weatherData.measurements.map(function (point) {
-            return point.hour;
+            return formatAxisHour(point.hour);
         }),
         tickInterval: 4,
         tickColor: '#666',
@@ -271,7 +286,7 @@ Highcharts.chart('containerPressure', {
             },
             data: weatherData.measurements.map(function (point) {
                 return {
-                    y: Math.round(point.pressure),
+                    y: normalizePressure(point.pressure),
                     hour: point.hour
                 };
             })
