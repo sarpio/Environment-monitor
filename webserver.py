@@ -162,23 +162,29 @@ def build_weather_data_js(
     current_pressure,
     current_battery_percent
 ):
-    history_js = ",\n        ".join(
-        build_measurement_js(record) for record in measurements_history
-    )
+    return json.dumps(build_weather_data(
+        current_temperature,
+        current_humidity,
+        current_pressure,
+        current_battery_percent
+    ))
 
-    return (
-        "{\n"
-        "    current: {\n"
-        "        temperature: " + fmt_js_number(current_temperature, 2) + ",\n"
-        "        humidity: " + fmt_js_number(current_humidity, 2) + ",\n"
-        "        pressure: " + fmt_js_number(current_pressure, 0) + ",\n"
-        "        batteryPercent: " + fmt_js_number(current_battery_percent, 0) + "\n"
-        "    },\n"
-        "    measurements: [\n"
-        "        " + history_js + "\n"
-        "    ]\n"
-        "}"
-    )
+
+def build_weather_data(
+    current_temperature,
+    current_humidity,
+    current_pressure,
+    current_battery_percent
+):
+    return {
+        "current": {
+            "temperature": current_temperature,
+            "humidity": current_humidity,
+            "pressure": round(current_pressure),
+            "batteryPercent": current_battery_percent
+        },
+        "measurements": measurements_history
+    }
 
 
 def build_script(
@@ -276,6 +282,17 @@ def start_server(read_values, wlan, reconnect_wifi, wdt, start_time=None, restar
                     "Connection: close\r\n"
                     "\r\n"
                     + STYLE_CSS
+                )
+            elif "GET /data.json" in request:
+                temperature, humidity, pressure, battery_percent = read_values()
+
+                response = (
+                    "HTTP/1.1 200 OK\r\n"
+                    "Content-Type: application/json; charset=utf-8\r\n"
+                    "Cache-Control: no-cache\r\n"
+                    "Connection: close\r\n"
+                    "\r\n"
+                    + build_weather_data_js(temperature, humidity, pressure, battery_percent)
                 )
             elif "GET /js/script.js" in request or "GET /script.js" in request:
                 temperature, humidity, pressure, battery_percent = read_values()

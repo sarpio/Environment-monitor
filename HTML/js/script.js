@@ -81,7 +81,7 @@ function renderBatteryLevel() {
 renderLatestValues();
 renderBatteryLevel();
 
-Highcharts.chart('container', {
+var temperatureHumidityChart = Highcharts.chart('container', {
 
     chart: {
         backgroundColor: '#1e1e1e',
@@ -222,7 +222,7 @@ Highcharts.chart('container', {
     ]
 });
 
-Highcharts.chart('containerPressure', {
+var pressureChart = Highcharts.chart('containerPressure', {
 
     chart: {
         backgroundColor: '#1e1e1e',
@@ -318,3 +318,50 @@ Highcharts.chart('containerPressure', {
         }
     ]
 });
+
+function updateCharts() {
+    var categories = weatherData.measurements.map(function (point) {
+        return formatAxisHour(point.hour);
+    });
+
+    temperatureHumidityChart.xAxis[0].setCategories(categories, false);
+    temperatureHumidityChart.series[0].setData(weatherData.measurements.map(function (point) {
+        return {
+            y: point.temperature,
+            hour: point.hour
+        };
+    }), false);
+    temperatureHumidityChart.series[1].setData(weatherData.measurements.map(function (point) {
+        return {
+            y: point.humidity,
+            hour: point.hour
+        };
+    }), false);
+    temperatureHumidityChart.redraw();
+
+    pressureChart.xAxis[0].setCategories(categories, false);
+    pressureChart.series[0].setData(weatherData.measurements.map(function (point) {
+        return {
+            y: normalizePressure(point.pressure),
+            hour: point.hour
+        };
+    }), false);
+    pressureChart.redraw();
+}
+
+function refreshWeatherData() {
+    fetch('/data.json?_=' + Date.now(), { cache: 'no-store' })
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (data) {
+            weatherData = data;
+            renderLatestValues();
+            renderBatteryLevel();
+            updateCharts();
+        })
+        .catch(function () {
+        });
+}
+
+setInterval(refreshWeatherData, 60000);
